@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +28,10 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    String apiKey, movieURL, tvURL, searching;
+    MenuItem movieItem = (MenuItem) findViewById(R.id.movieItem);
+    MenuItem tvItem = (MenuItem) findViewById(R.id.tvItem);
+
+    String apiKey, URL, searching;
     int page;
 
     List<Movies> mMoviesList;
@@ -37,10 +43,14 @@ public class MainActivity extends AppCompatActivity {
 
         apiKey = "7d1a5247e44585fd09d9d201fce8fcb1";
         page = 1;
-        searching = "movie";
+        if (movieItem.isChecked()) {
+            searching = "movie";
+        } else if (tvItem.isChecked()){
+            searching = "tv";
+        }
 
-        movieURL = " https://api.themoviedb.org/3/discover/movie?api_key=" + apiKey + "&page=" + page;
-        tvURL = "https://api.themoviedb.org/3/discover/tv?api_key=" + apiKey + "&page=" + page;
+
+        URL = " https://api.themoviedb.org/3/discover/" + searching + "?api_key=" + apiKey + "&page=" + page;
 
         RecyclerView rv = (RecyclerView) findViewById(R.id.recyclerView);
 
@@ -53,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         if (isNetworkAvailable()) {
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()
-                    .url(movieURL)
+                    .url(URL)
                     .build();
 
             Call call = client.newCall(request);
@@ -67,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onResponse(Call call, Response response) throws IOException {
                     String jsonData = response.body().string();
                     try {
-                        getData(jsonData);
+                        mMoviesList = getData(jsonData);
                         rvAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -113,5 +123,15 @@ public class MainActivity extends AppCompatActivity {
     private void alertUserAboutError() {
         AlertDialogFragment dialog = new AlertDialogFragment();
         dialog.show(getFragmentManager(), "error_dialog");
+    }
+
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        return true;
     }
 }
